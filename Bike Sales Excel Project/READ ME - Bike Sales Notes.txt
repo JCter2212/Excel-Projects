@@ -1,0 +1,21 @@
+Bike Sales Excel Analysis
+
+Notes:
+1. This project shows two methods of data cleaning: manual and macro driven. 
+
+	Manual:
+	Data cleaning was conducted using manually in the following ways:
+	1. All columns were selected and the Remove Duplicates feature was removed to delete duplicate entries. 
+	2. Find-and-Replace to update clear up ambiguity in the Marital Status and Gender columns. 
+	3. Income was changed to a currency type column. 
+	4. Find-and-Replace was used to udpat the Commute Distance value "10+ miles" for ease of analysis. 
+	5. An Age Group column was created using the IFS formula to create groups for ease of analysis.
+	6. The range was converted to a table for ease of generating pivot tables and pivot charts. 
+
+	Macro:
+	The data cleaning macro is currently embedded in the Data (Base) tab. It conducts all of the manual functions, but does not create a table.
+	In lieu of running the macro, the code as been placed as a text file with the project. 
+
+
+
+	

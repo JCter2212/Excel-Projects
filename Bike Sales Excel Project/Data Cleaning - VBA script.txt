@@ -1,0 +1,103 @@
+Sub DataCleaningSample()
+'Created on 11/13/24
+'The purpose of this macro is to show how data can be cleaned via automation using excel VBA.
+'Note: this macro can be executed within the sheet by pressing CTRL + SHIFT + C
+
+On Error GoTo ErrorHandler
+
+Application.ScreenUpdating = False
+
+'Define variables
+Dim BDataWS As Worksheet
+Dim rng As Range
+Dim LRow As Long
+Dim LCol As Long
+Dim colArray() As Variant
+Dim i As Long
+
+'Defining objects and setting initial variables.
+Set BDataWS = ThisWorkbook.Worksheets("Data (Base)")
+
+BDataWS.Activate
+
+'Finding last row and column. These will be recycled throughout the macro.
+LRow = BDataWS.Range("a" & Rows.Count).End(xlUp).Row
+
+LCol = BDataWS.Cells(1, BDataWS.Columns.Count).End(xlToLeft).Column
+
+
+'The first thing to do is check for duplicates across the entire range, and remove duplicate entries.
+Set rng = BDataWS.Range(BDataWS.Cells(1, 1), BDataWS.Cells(LRow, LCol))
+
+'Creating a dynamic array for the columns.
+ReDim colArray(0 To (LCol - 1))
+    For i = 0 To (LCol - 1)
+        colArray(i) = i + 1
+    Next i
+
+'removing the duplicates
+rng.RemoveDuplicates Columns:=(colArray), Header:=xlYes
+
+'Re-define last row and column in case duplicates were removed
+LRow = BDataWS.Range("a" & Rows.Count).End(xlUp).Row
+
+LCol = BDataWS.Cells(1, BDataWS.Columns.Count).End(xlToLeft).Column
+
+'Note that in the below data cleaning section, it would typically be more efficient to use a With statement,
+'however, this code was written for the purposes of demonstrating data cleaning in VBA.
+
+'The Marital Status column uses M to indicate married, but the Gender column uses M to indicate male.
+'To avoid confusion during analysis, it's better to replace the values in each column with the entire word.
+'Married
+BDataWS.Range("B2:B" & LRow).Replace _
+What:="M", Replacement:="Married", SearchOrder:=xlByRows, MatchCase:=True
+
+'Single
+BDataWS.Range("B2:B" & LRow).Replace _
+What:="S", Replacement:="Single", SearchOrder:=xlByRows, MatchCase:=True
+
+BDataWS.Range("C2:C" & LRow).Replace _
+What:="M", Replacement:="Male", SearchOrder:=xlByRows, MatchCase:=True
+
+'When replacing values in VBA, it's faster to use auto filter
+BDataWS.Range("C2:C" & LRow).Replace _
+What:="F", Replacement:="Female", SearchOrder:=xlByRows, MatchCase:=True
+
+'Now to clean up formatting and add some grouping for analysis
+'Changing Income to type: currency
+BDataWS.Range("D2:D" & LRow).NumberFormat = "$#,##0.00"
+
+'Because Excel displays items in numeric order, it's necessary to add some letters in to ensure the data can be displayed properly in tables.
+BDataWS.Range("J2:J" & LRow).Replace _
+What:="10+ Miles", Replacement:="At least 10 miles", SearchOrder:=xlByRows, MatchCase:=True
+
+'Because we'll want a cheater column in some visualizations, we are going to create some groups for age.
+BDataWS.Columns("M").Insert Shift:=xlRight
+
+BDataWS.Range("M1").Value = "Age Group"
+
+'Using a formula instead of looping through for efficiency.
+BDataWS.Range("M2:M" & LRow).Formula = "=IFS(L2>=65,""Retirement Age"",AND(L2<65,L2>=40),""Middle Aged"",AND(L2<40,L2>=30),""In the 30s"",L2<30,""Below 30"")"
+
+BDataWS.Range("M2:M" & LRow).Copy
+BDataWS.Range("M2").PasteSpecial xlPasteValues
+
+BDataWS.Range("A1").Select
+
+BDataWS.Columns.AutoFit
+
+Application.ScreenUpdating = True
+
+Exit Sub
+
+Application.ScreenUpdating = True
+
+ErrorHandler:
+    MsgBox "An error ocurred: " & Err.Description
+    
+'Releasing objects to free up memory
+Set rng = Nothing
+
+Set BDataWS = Nothing
+
+End Sub
